@@ -1,0 +1,15 @@
+{
+  "Group": "dev.solarion",
+  "Name": "Anticheat",
+  "Version": "1.0.0",
+  "Description": "Solarfall Anticheat Plugin",
+  "Authors": [
+    {
+      "Name": "Solarion Interactive"
+    }
+  ],
+  "ServerVersion": "*",
+  "DisabledByDefault": false,
+  "Main": "dev.solarion.anticheat.AnticheatPlugin",
+  "IncludesAssetPack": false
+}
