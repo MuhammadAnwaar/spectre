@@ -27,4 +27,4 @@ We welcome contributions! Everything helps whether it be docs, code, or comments
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+GNU Affero General Public License v3.0 — see [LICENSE](LICENSE) for details.
