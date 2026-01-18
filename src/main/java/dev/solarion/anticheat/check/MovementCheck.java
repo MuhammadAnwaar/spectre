@@ -8,6 +8,14 @@ public class MovementCheck {
 
     public static final double MAX_STEP_HEIGHT = 1.1;
 
+    public static final double MAX_FALLING_SPEED = 60.0;
+
+    public static final double SPEED_BUFFER_MULTIPLIER = 1.3;
+
+    public static final double VERTICAL_BUFFER_ADDITIVE = 2.0;
+
+    public static final double LATERAL_BUFFER_ADDITIVE = 4.0;
+
     // TODO: Eventually we should return more specific info like "SPEED_1" instead of just true/false
     public static boolean checkInvalidAbsoluteMovementPacket(double x, double y, double z, Vector3d previousPosition, MovementStates movementStates, MovementManager movementManager, float deltaTime) {
 
@@ -73,12 +81,12 @@ public class MovementCheck {
                 maxVerticalSpeed = settings.jumpForce;
             } else { // Falling
                 // Just a loose cap for falling speed for now
-                maxVerticalSpeed = 60.0;
+                maxVerticalSpeed = MAX_FALLING_SPEED;
             }
         }
 
         // Add robustness buffer
-        return (maxVerticalSpeed * 1.3) + 2.0;
+        return (maxVerticalSpeed * SPEED_BUFFER_MULTIPLIER) + VERTICAL_BUFFER_ADDITIVE;
     }
 
     private static double getLateralLimit(MovementStates movementStates, MovementManager movementManager) {
@@ -93,6 +101,6 @@ public class MovementCheck {
         }
 
         // Add a buffer to account for lag or something
-        return (maxLateralSpeed * 1.3) + 4.0;
+        return (maxLateralSpeed * SPEED_BUFFER_MULTIPLIER) + LATERAL_BUFFER_ADDITIVE;
     }
 }
