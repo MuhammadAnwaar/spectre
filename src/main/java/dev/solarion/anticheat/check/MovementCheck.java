@@ -1,106 +1,111 @@
 package dev.solarion.anticheat.check;
 
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.entity.entities.player.movement.MovementManager;
 import com.hypixel.hytale.protocol.MovementStates;
 
+import java.util.logging.Level;
+
 public class MovementCheck {
 
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
     public static final double MAX_STEP_HEIGHT = 1.1;
-
     public static final double MAX_FALLING_SPEED = 60.0;
-
-    public static final double SPEED_BUFFER_MULTIPLIER = 1.3;
-
+    public static final double SPEED_BUFFER_MULTIPLIER = 1.5;
     public static final double VERTICAL_BUFFER_ADDITIVE = 2.0;
+    public static final double LATERAL_BUFFER_ADDITIVE = 3.0;
+    
+    // Extra speed buffer for in-air combat (weapon attacks give momentum boosts)
+    // This is a temporary fix until we can look into the physics engine
+    public static final double COMBAT_MOMENTUM_MULTIPLIER = 4.0;
 
-    public static final double LATERAL_BUFFER_ADDITIVE = 4.0;
-
-    // TODO: Eventually we should return more specific info like "SPEED_1" instead of just true/false
+    // TODO: Return more specific info like "SPEED_1" instead of just true/false
     public static boolean checkInvalidAbsoluteMovementPacket(double x, double y, double z, Vector3d previousPosition, MovementStates movementStates, MovementManager movementManager, float deltaTime) {
 
-        // Allows auto step-up teleporting
-        // The client teleports up by 1 block when performing an auto step-up.
-        // The client stays on ground when stepping up so we make sure to check for that.
+        // Allow step-up (client teleports up when stepping onto blocks)
         if (movementStates.onGround && !movementStates.mantling) {
             double deltaY = y - previousPosition.y;
-
             if (deltaY > 0 && deltaY <= MAX_STEP_HEIGHT) {
                 return false;
             }
         }
 
-        // Disallows the mantle-into-ceiling warp glitch
+        // Block mantle-into-ceiling glitch
         if (movementStates.onGround && movementStates.mantling) {
+            LOGGER.at(Level.WARNING).log("[MovementCheck] FAILED: Mantle-into-ceiling glitch");
             return true;
         }
 
-        // Fix to allow mantling
+        // Allow mantling
         if (movementStates.mantling) {
             return false;
         }
 
-        // New Position (Target)
         var newPosition = new Vector3d(x, y, z);
-
-        // Deltas (compared to previous validated position)
         var delta = newPosition.clone().subtract(previousPosition);
 
-        // 1. Check horizontal movement (walking running etc.)
+        // Check horizontal speed
         var lateralDelta = new Vector3d(delta.x, 0, delta.z);
-        var lateralDistance = lateralDelta.length();
-        var lateralSpeed = lateralDistance / deltaTime; // Units per second
-
+        var lateralSpeed = lateralDelta.length() / deltaTime;
         double lateralLimit = getLateralLimit(movementStates, movementManager);
 
         if (lateralSpeed > lateralLimit) {
-            // LOGGER.atInfo().log("Failed lateral speed: " + lateralSpeed + " > " + lateralLimit);
+            LOGGER.at(Level.WARNING).log("[MovementCheck] FAILED: Lateral speed %.2f > %.2f", lateralSpeed, lateralLimit);
             return true;
         }
 
-        // 2. Check vertical movement (jumping/falling)
-        var verticalDistance = Math.abs(delta.y);
-        var verticalSpeed = verticalDistance / deltaTime;
-
+        // Check vertical speed (only fail if not falling)
+        var verticalSpeed = Math.abs(delta.y) / deltaTime;
         double verticalLimit = getVerticalLimit(movementStates, movementManager, delta.y);
 
-        // If they are falling they might be moving faster than normal
-        // But if they aren't marked as 'falling' and are moving this fast it's likely a movement exploit
-        // LOGGER.atInfo().log("Failed vertical speed: " + verticalSpeed + " > " + verticalLimit);
-        return verticalSpeed > verticalLimit && !movementStates.falling;
+        if (verticalSpeed > verticalLimit && !movementStates.falling) {
+            LOGGER.at(Level.WARNING).log("[MovementCheck] FAILED: Vertical speed %.2f > %.2f", verticalSpeed, verticalLimit);
+            return true;
+        }
+
+        return false;
     }
 
     private static double getVerticalLimit(MovementStates movementStates, MovementManager movementManager, double deltaY) {
         var settings = movementManager.getSettings();
         double maxVerticalSpeed;
+        
         if (movementStates.flying) {
             maxVerticalSpeed = settings.verticalFlySpeed;
+        } else if (deltaY > 0) {
+            // Jumping - cap at jump force
+            maxVerticalSpeed = settings.jumpForce;
         } else {
-            if (deltaY > 0) { // Jumping / Going up
-                // When jumping their speed shouldn't exceed the jump force
-                maxVerticalSpeed = settings.jumpForce;
-            } else { // Falling
-                // Just a loose cap for falling speed for now
-                maxVerticalSpeed = MAX_FALLING_SPEED;
-            }
+            // Falling - loose cap
+            maxVerticalSpeed = MAX_FALLING_SPEED;
         }
 
-        // Add robustness buffer
         return (maxVerticalSpeed * SPEED_BUFFER_MULTIPLIER) + VERTICAL_BUFFER_ADDITIVE;
     }
 
     private static double getLateralLimit(MovementStates movementStates, MovementManager movementManager) {
         var settings = movementManager.getSettings();
         double maxLateralSpeed;
+        
         if (movementStates.flying) {
             maxLateralSpeed = settings.horizontalFlySpeed;
         } else {
-            // Calculate the max valid speed based on their base speed and sprint multipliers
-            // We use the sprint multiplier to be safe and avoid false positives
-            maxLateralSpeed = settings.baseSpeed * settings.forwardSprintSpeedMultiplier;
+            // Diagonal sprint speed = hypot(forward, strafe)
+            double forwardComponent = settings.baseSpeed * settings.forwardSprintSpeedMultiplier;
+            double strafeComponent = settings.baseSpeed * settings.strafeRunSpeedMultiplier;
+            maxLateralSpeed = Math.hypot(forwardComponent, strafeComponent);
+            
+            // In air: apply air multipliers + combat momentum for weapon attacks
+            if (!movementStates.onGround) {
+                maxLateralSpeed *= settings.airSpeedMultiplier;
+                maxLateralSpeed *= settings.comboAirSpeedMultiplier;
+                // TODO: Look at movesettings or something deeper within Hytales 'physics engine' instead of setting our own multiplier
+                maxLateralSpeed *= COMBAT_MOMENTUM_MULTIPLIER;
+            }
         }
 
-        // Add a buffer to account for lag or something
         return (maxLateralSpeed * SPEED_BUFFER_MULTIPLIER) + LATERAL_BUFFER_ADDITIVE;
     }
 }
